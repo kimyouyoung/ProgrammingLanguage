@@ -100,14 +100,18 @@
 ; [test] (test (vehicle-tax (Car 4 8)) 12)
 ;        (test (vehicle-tax (Airplane 8 22 8)) 38)
 
-(define (vehicle-tax v)
-  (type-case Vehicle v
-    [Bicycle (w) w]
-    [Car (w win) (+ w win)]
-    [Airplane (w win e) (+ w win e)]))
+(define myBicycle(Bicycle 7))
+(define myCar(Car 4 8))
+(define myAirplane(Airplane 5 30 24))
 
-(test (vehicle-tax (Car 4 8)) 12)
-(test (vehicle-tax (Airplane 8 22 8)) 38)
+(define (vehicle-tax v tax_w tax_win tax_e)
+  (type-case Vehicle v
+    [Bicycle (w) (* w tax_w)]
+    [Car (w win) (+ (* w tax_w)(* win tax_win))]
+    [Airplane (w win e) (+(+ (* w tax_w)(* win tax_win))(* e tax_e))]))
+
+(test (vehicle-tax myCar 4 8 9) 80)
+(test (vehicle-tax myAirplane 8 22 8) 892)
 
 ; Problem6-c:
 ; Solved by myself: Y
@@ -182,3 +186,4 @@
 (test (binary-search '(1 2 3 4 5 6 7 8) 3) '(4 2 3))
 (test (binary-search '(1 2 3 4 5 6 7 8 9 10) 9) '(5 8 9))
 (test (binary-search '(1 2 3 4 5) 5) '(3 4 5))
+
