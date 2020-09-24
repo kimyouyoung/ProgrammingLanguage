@@ -2,7 +2,7 @@
 
 ; Problem1:
 ; Solved by myself: Y
-; Time taken: about 2mins
+; Time taken: about 3mins
 ; [contract] get-average: number number -> number
 ; [purpose] compute the average of two numbers.
 ; [test] (test (get-average 2 8) 5)
@@ -16,7 +16,7 @@
 
 ; Problem2:
 ; Solved by myself: Y
-; Time taken: about 2mins
+; Time taken: about 3mins
 ; [contract] inchworm-travel: number -> number
 ; [purpose] indicates the distance traveled by the inchworm in centimeters.
 ; [test] (test (inchworm-travel 9) 22.86)
@@ -30,7 +30,7 @@
 
 ; Problem3:
 ; Solved by myself: Y
-; Time taken: about 2mins
+; Time taken: about 3mins
 ; [contract] volume-cube: number -> number
 ; [purpose] compute the volume of the cube.
 ; [test] (test (volume-cube 6) 216)
@@ -44,7 +44,7 @@
 
 ; Problem4:
 ; Solved by myself: Y
-; Time taken: about 2mins
+; Time taken: about 3mins
 ; [contract] my-BMI: number number -> number
 ; [purpose] compute BMI by receiving height and weight.
 ; [test] (test (my-BMI 50 1.63) 19)
@@ -57,12 +57,13 @@
 (test (my-BMI 75 1.82) 23)
 
 ; Problem5:
-; Solved by myself: Y (I see the example code from https://docs.racket-lang.org/reference/pairs.html - list-ref)
-; Time taken: about 1hours
+; Solved by myself: Y
+; Time taken: about 3hours
 ; [contract] fib: number -> list of number
 ; [purpose] the fibonacci number is computed and the list is returned.
 ; [test] (test (fib 9) '(1 1 2 3 5 8 13 21 34))
 ;        (test (fib 17) '(1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597))
+;        (test (fib 5) '(1 1 2 3 5))
 
 (define (recursion start num lst)
   (cond
@@ -99,14 +100,18 @@
 ; [test] (test (vehicle-tax (Car 4 8)) 12)
 ;        (test (vehicle-tax (Airplane 8 22 8)) 38)
 
-(define (vehicle-tax v)
-  (type-case Vehicle v
-    [Bicycle (w) w]
-    [Car (w win) (+ w win)]
-    [Airplane (w win e) (+ w win e)]))
+(define myBicycle(Bicycle 7))
+(define myCar(Car 4 8))
+(define myAirplane(Airplane 5 30 24))
 
-(test (vehicle-tax (Car 4 8)) 12)
-(test (vehicle-tax (Airplane 8 22 8)) 38)
+(define (vehicle-tax v tax_w tax_win tax_e)
+  (type-case Vehicle v
+    [Bicycle (w) (* w tax_w)]
+    [Car (w win) (+ (* w tax_w)(* win tax_win))]
+    [Airplane (w win e) (+(+ (* w tax_w)(* win tax_win))(* e tax_e))]))
+
+(test (vehicle-tax myCar 4 8 9) 80)
+(test (vehicle-tax myAirplane 8 22 8) 892)
 
 ; Problem6-c:
 ; Solved by myself: Y
@@ -115,6 +120,8 @@
 ; [purpose] determine whether it is safe or unsafe in accordance with safety standards.
 ; [test] (test (is-vehicle-safe (Bicycle 3)) "safe")
 ;        (test (is-vehicle-safe (Airplane 2 8 2)) "unsafe")
+;        (test (is-vehicle-safe (Car 6 1)) "unsafe")
+;        (test (is-vehicle-safe (Airplane 10 33 3)) "safe")
 
 (define (is-vehicle-safe v)
   (cond
@@ -126,7 +133,9 @@
 
 (test (is-vehicle-safe (Bicycle 3)) "safe")
 (test (is-vehicle-safe (Airplane 2 8 2)) "unsafe")
- 
+(test (is-vehicle-safe (Car 6 1)) "unsafe")
+(test (is-vehicle-safe (Airplane 10 33 3)) "safe")
+
 ; Problem7:
 ; Solved by myself: Y (I see the example code from https://docs.racket-lang.org/reference/strings.html - string-append, string=?)
 ; Time taken: about 7mins
@@ -134,6 +143,8 @@
 ; [purpose] list of strings by appending source to all occurrences of target.
 ; [test] (test (update-name "john" " ate a meal" '("ken" "john" "esther" "henny")) ("ken" "john ate a meal" "esther" "henny"))
 ;        (test (update-name "julia" " studies english" '("julia" "marvin" "daniel" "claire" "julia" "mike")) ("julia studies english" "marvin" "daniel" "claire" "julia studies english" "mike"))
+;        (test (update-name "claire" " is nice" '("jc" "claire" "kate")) '("jc" "claire is nice" "kate"))
+;        (test (update-name "kyy" " is a student" '("kyy" "kyj" "ky" "kyy")) '("kyy is a student" "kyj" "ky" "kyy is a student"))
 
 (define (find-name target source lst len start final_lst)
   (cond
@@ -175,3 +186,4 @@
 (test (binary-search '(1 2 3 4 5 6 7 8) 3) '(4 2 3))
 (test (binary-search '(1 2 3 4 5 6 7 8 9 10) 9) '(5 8 9))
 (test (binary-search '(1 2 3 4 5) 5) '(3 4 5))
+
