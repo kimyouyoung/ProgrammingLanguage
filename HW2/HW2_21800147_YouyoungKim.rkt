@@ -45,22 +45,72 @@
 ; [contracet] free-ids: PWAE -> list-of-sym
 ; [purpose]
 
+(define (symbol<? a b) (string<? (symbol->string a) (symbol->string b)))
+
 
 ; Problem3: 
-; Solved by myself: 
-; Time taken: about
+; Solved by myself: Y
+; Time taken: about 30mins
 ; [contracet] binding-ids PWAE -> list-of-sym
 ; [purpose] find binding-ids
-(binding-ids (postfix (num 3) (postfix (id 'x) (id 'y) (op 'sub)) (op 'add)))
-(binding-ids (substitute 'y (num 3) (substitute 'y (id 'x) (postfix (id 'x) (id 'y) (op 'add)) (keyword 'with)) (keyword 'with)))
 
 (define (binding-ids pwae)
-  type-case PWAE pwae
-  [postfix (l r o) ((binding-ids l)(binding-ids r)(binding-ids o))]
-  [substitute (i v e) (
+  (type-case PWAE pwae
+    [num (n) '()]
+    [op (o) '()]
+    [id (name) '()]
+    [keyword (word) '()]
+    [postfix (l r o) (binding-ids l)(binding-ids r)(binding-ids o)]
+    [substitute (i v e k) (remove-duplicates (sort (append (append (list i)(binding-ids e))(binding-ids v)) symbol<?))]))
+
+(test (binding-ids (postfix (num 3) (postfix (id 'x) (id 'y) (op 'sub)) (op 'add))) '())
+(test (binding-ids (substitute 'y (num 3) (substitute 'x (id 'x) (id 'y) (keyword 'with)) (keyword 'with))) '(x y))
+(test (binding-ids (substitute 'y (num 3) (substitute 'y (id 'x) (postfix (id 'x) (id 'y) (op 'add)) (keyword 'with)) (keyword 'with))) '(y))
+(test (binding-ids (substitute 'y (num 3) (substitute 'y (substitute 'x (postfix (num 3) (id 'y) (op 'sub)) (postfix (id 'x) (id 'y) (op 'sub)) (keyword 'with)) (postfix (id 'x) (id 'y) (op 'add)) (keyword 'with)) (keyword 'with))) '(x y))
+(test (binding-ids (substitute 'z (num 3) (substitute 'w (substitute 'z (postfix (num 3) (id 'y) (op 'add)) (postfix (id 'x) (id 'y) (op 'sub)) (keyword 'with)) (substitute 'w (id 'y) (postfix (num 7) (id 'w) (op 'add)) (keyword 'with)) (keyword 'with)) (keyword 'with))) '(w z))
 
 ; Problem4: 
 ; Solved by myself: 
 ; Time taken: about
 ; [contracet] bound-ids PWAE -> list-of-sym
-; [purpose]
+; [purpose] find bound-ids
+
+(define (make-list id lst)
+  (remove-duplicates (sort (append id lst) symbol<?)))
+
+(define (check-ids id lst-idtf)
+  [cond
+    [(empty? lst-idtf) '()]
+    [(equal? (first lst-idtf) id) (list id)]
+    [else (check-ids id (rest lst-idtf))]])
+
+(define (sub-bound pwae lst-idtf)
+  (type-case PWAE pwae
+    [num (n) '()]
+    [op (o) '()]
+    [id (name) (check-ids name lst-idtf)]
+    [keyword (word) '()]
+    [postfix (l r o) (remove-duplicates (sort (append (sub-bound l lst-idtf)(sub-bound r lst-idtf)) symbol<?))]
+    [substitute (i v e k) (sub-bound v (remove-duplicates (append (list i) lst-idtf))) (sub-bound e (remove-duplicates (append (list i) lst-idtf)))]))
+
+(define (bound-ids pwae)
+  (type-case PWAE pwae
+    [num (n) '()]
+    [op (o) '()]
+    [id (name) '()]
+    [keyword (word) '()]
+    [postfix (l r o) (bound-ids l)(bound-ids r)(bound-ids o)]
+    [substitute (i v e k) (bound-ids v) (sub-bound e (list i))]))
+
+(bound-ids (substitute 'x (num 3) (substitute 'y (id 'x) (postfix (num 3) (id 'y) (op 'sub)) (keyword 'with)) (keyword 'with)))
+
+(test (bound-ids (substitute 'x (num 3) (postfix (id 'y) (num 3) (op 'add)) (keyword 'with))) '())
+(test (bound-ids (substitute 'x (num 3) (postfix (id 'x) (postfix (id 'x) (id 'y) (op 'sub)) (op 'add)) (keyword 'with))) '(x))
+(test (bound-ids (substitute 'x (num 3) (postfix (id 'x) (substitute 'y (num 7) (postfix (id 'x) (id 'y) (op 'sub)) (keyword 'with)) (op 'add)) (keyword 'with))) '(x y))
+(test (bound-ids (substitute 'x (num 3) (substitute 'y (id 'x) (postfix (num 3) (id 'y) (op 'sub)) (keyword 'with)) (keyword 'with))) '(x y))
+(test (bound-ids (substitute 'x (num 3) (postfix (id 'y) (substitute 'y (id 'x) (postfix (num 3) (num 7) (op 'sub)) (keyword 'with)) (op 'add)) (keyword 'with))) '(x))
+(test (bound-ids (substitute 'x (id 'x) (postfix (id 'y) (substitute 'y (id 'y) (postfix (num 3) (substitute 'z (num 7) (postfix (id 'z) (id 'x) (op 'sub)) (keyword 'with)) (op 'sub)) (keyword 'with)) (op 'add)) (keyword 'with))) '(x z))
+(test (bound-ids (substitute 'x (substitute 'y (num 3) (postfix (id 'x) (id 'y) (op 'add)) (keyword 'with)) (postfix (id 'y) (substitute 'y (id 'y) (postfix (num 3) (num 7) (op 'sub)) (keyword 'with)) (op 'add)) (keyword 'with))) '(y))
+(test (bound-ids (substitute 'x (id 'a) (substitute 'y (id 'b) (substitute 'z (id 'c) (postfix (id 'd) (postfix (id 'x) (postfix (id 'y) (id 'z) (op 'add)) (op 'sub)) (op 'sub)) (keyword 'with)) (keyword 'with)) (keyword 'with))) '(x y z))
+(test (bound-ids (postfix (substitute 'x (num 10) (substitute 'x (num 3) (postfix (id 'y) (substitute 'y (num 7) (postfix (id 'x) (postfix (id 'c) (id 'b) (op 'sub)) (op 'sub)) (keyword 'with)) (op 'sub)) (keyword 'with)) (keyword 'with)) (substitute 'a (id 'd) (id 'a) (keyword 'with)) (op 'add))) '(a x))
+(test (bound-ids (postfix (substitute 'x (num 10) (substitute 'x (num 3) (postfix (id 'y) (substitute 'y (num 7) (postfix (id 'x) (postfix (id 'c) (id 'b) (op 'sub)) (op 'add)) (keyword 'with)) (op 'sub)) (keyword 'with)) (keyword 'with)) (substitute 'a (id 'd) (id 'z) (keyword 'with)) (op 'add))) '(x))

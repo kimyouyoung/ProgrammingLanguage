@@ -35,7 +35,7 @@
     [sub (l r) (sub (subst l idtf val)(subst r idtf val))]
     [with (i v e) (with i (subst v idtf val)(if(symbol=? i idtf) e
                                                 (subst e idtf val)))]
-    [id (s) (if(symbol=? s idtf)(num val) wae)]))
+    [id (s) (if(symbol=? s idtf)(num val) wae)])) 
 
 (test(subst(with 'y (num 17)(id 'x)) 'x 10)(with 'y (num 17)(num 10)))
 
@@ -46,7 +46,7 @@
     [add (l r) (+ (interp l)(interp r))]
     [sub (l r) (- (interp l)(interp r))]
     [with (i v e) (interp (subst e i (interp v)))]
-    [id (s) (error 'inerp "free identifier ~a"s)]))
+    [id (s) (error 'interp "free identifier ~a"s)]))
 
 (test(interp(with 'x (num 5)(add (id 'x)(id 'x)))) 10)
 (test(interp(with 'y (num 3)(sub (num 10)(add (id 'y)(num 6))))) 1)
