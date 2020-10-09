@@ -85,6 +85,7 @@
     [else (check-ids name (rest lst-idtf))]])
 
 (define (sub-bound pwae lst-idtf)
+  (print lst-idtf)
   (type-case PWAE pwae
     [num (n) '()]
     [op (o) '()]
@@ -100,10 +101,10 @@
     [id (name) '()]
     [keyword (word) '()]
     [postfix (l r o) (bound-ids l)(bound-ids r)(bound-ids o)]
-    [substitute (i v e k) (remove-duplicates (sort (append (bound-ids v) (sub-bound e (list i))) symbol<?))]))
+    [substitute (i v e k) (make-list (bound-ids v) (sub-bound e (list i)))]))
 
 (bound-ids (postfix (substitute 'x (num 10) (substitute 'x (num 3) (postfix (id 'y) (substitute 'y (num 7) (postfix (id 'x) (postfix (id 'c) (id 'b) (op 'sub)) (op 'sub)) (keyword 'with)) (op 'sub)) (keyword 'with)) (keyword 'with)) (substitute 'a (id 'd) (id 'a) (keyword 'with)) (op 'add)))
-
+(substitute 'a (id 'd) (id 'a) (keyword 'with))
 (test (bound-ids (substitute 'x (num 3) (postfix (id 'y) (num 3) (op 'add)) (keyword 'with))) '())
 (test (bound-ids (substitute 'x (num 3) (postfix (id 'x) (postfix (id 'x) (id 'y) (op 'sub)) (op 'add)) (keyword 'with))) '(x))
 (test (bound-ids (substitute 'x (num 3) (postfix (id 'x) (substitute 'y (num 7) (postfix (id 'x) (id 'y) (op 'sub)) (keyword 'with)) (op 'add)) (keyword 'with))) '(x y))
