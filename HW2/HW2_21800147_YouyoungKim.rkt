@@ -40,8 +40,8 @@
 (parse '{{x 5} {8 2 +} with})
 
 ; Problem2: 
-; Solved by myself: 
-; Time taken: about
+; Solved by myself: Y
+; Time taken: about 45mins
 ; [contracet] free-ids: PWAE -> list-of-sym
 ; [purpose] find free-ids
 
@@ -72,12 +72,7 @@
     [id (name) '()]
     [keyword (word) '()]
     [postfix (l r o) (make-list (free-ids l) (free-ids r))]
-    [substitute (i v e k) (make-list (sub-free v (list i)) (sub-free e (list i)))]))
-
-; bad
-(free-ids (substitute 'x (substitute 'y (num 3) (postfix (id 'x) (id 'y) (op 'sub)) (keyword 'with)) (postfix (id 'x) (id 'y) (op 'add)) (keyword 'with)))
-; good
-(free-ids (substitute 'x (num 3) (postfix (id 'y) (substitute 'y (num 7) (postfix (id 'x) (postfix (id 'b) (id 'a) (op 'sub)) (op 'add)) (keyword 'with)) (op 'sub)) (keyword 'with)))
+    [substitute (i v e k) (make-list (sub-free v '()) (sub-free e (list i)))]))
 
 (test (free-ids (substitute 'x (num 3) (postfix (id 'x) (postfix (num 3) (id 'x) (op 'sub)) (op 'add)) (keyword 'with))) '())
 (test (free-ids (substitute 'x (num 3) (postfix (id 'a) (postfix (num 4) (id 'x) (op 'add)) (op 'sub)) (keyword 'with))) '(a))
