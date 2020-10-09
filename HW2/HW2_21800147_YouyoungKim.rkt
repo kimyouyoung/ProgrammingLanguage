@@ -1,8 +1,10 @@
 #lang plai
 
-; Problem1: 
+; Problem1-(a): 
 ; Solved by myself: Y
-; Time taken: about 30mins
+; Time taken: about 10mins
+; [contract] define-type <PWAE>
+; [purpose] define type of postfix WAE, PWAE
 
 ;Define PWAE type
 ;<PWAE> ::= <num>                            
@@ -21,7 +23,9 @@
   [substitute (name symbol?)(named-expr PWAE?)(body PWAE?)(key PWAE?)])
 
   
-
+; Problem1-(b): 
+; Solved by myself: Y
+; Time taken: about 20mins
 ; [contract] parse: sexp -> PWAE
 ; [purpose] to convert s-expression into PWAE
 (define (parse sexp)
@@ -36,6 +40,7 @@
 (test (parse '{{3 4 -} 7 +}) (postfix (postfix (num 3) (num 4) (op 'sub)) (num 7) (op 'add)))
 (test (parse '{{x 5} {x x +} with}) (substitute 'x (num 5) (postfix (id 'x) (id 'x) (op 'add)) (keyword 'with)))
 (test (parse '{{x {5 4 +}} {x x +} with}) (substitute 'x (postfix (num 5) (num 4) (op 'add)) (postfix (id 'x) (id 'x) (op 'add)) (keyword 'with)))
+(test (parse '{{y {2 3 +}} {{x y} {x y +} with} with}) (substitute 'y (postfix (num 2) (num 3) (op 'add)) (substitute 'x (id 'y) (postfix (id 'x) (id 'y) (op 'add)) (keyword 'with)) (keyword 'with)))
 ;(parse '{{x {5 5 +}} {x x +} with})
 ;(parse '{{x 5} {8 2 +} with})
 
