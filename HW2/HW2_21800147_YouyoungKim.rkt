@@ -2,7 +2,7 @@
 
 ; Problem1: 
 ; Solved by myself: Y
-; Time taken: about 25mins
+; Time taken: about 30mins
 
 ;Define PWAE type
 ;<PWAE> ::= <num>                            
@@ -33,15 +33,15 @@
     [(? symbol?) (id sexp)]
     [else (error 'parse "bad syntax:~a"sexp)]))
 
-(parse '{{3 4 -} 7 +})
-(parse '{{x 5} {x x +} with})
-(parse '{{x {5 4 +}} {x x +} with})
-(parse '{{x {5 5 +}} {x x +} with})
-(parse '{{x 5} {8 2 +} with})
+(test (parse '{{3 4 -} 7 +}) (postfix (postfix (num 3) (num 4) (op 'sub)) (num 7) (op 'add)))
+(test (parse '{{x 5} {x x +} with}) (substitute 'x (num 5) (postfix (id 'x) (id 'x) (op 'add)) (keyword 'with)))
+(test (parse '{{x {5 4 +}} {x x +} with}) (substitute 'x (postfix (num 5) (num 4) (op 'add)) (postfix (id 'x) (id 'x) (op 'add)) (keyword 'with)))
+;(parse '{{x {5 5 +}} {x x +} with})
+;(parse '{{x 5} {8 2 +} with})
 
 ; Problem2: 
 ; Solved by myself: Y
-; Time taken: about 45mins
+; Time taken: about 1hour
 ; [contracet] free-ids: PWAE -> list-of-sym
 ; [purpose] find free-ids
 
@@ -108,7 +108,7 @@
 
 ; Problem4: 
 ; Solved by myself: Y
-; Time taken: about 3hours
+; Time taken: about 4hours
 ; [contracet] bound-ids PWAE -> list-of-sym
 ; [purpose] find bound-ids
 
