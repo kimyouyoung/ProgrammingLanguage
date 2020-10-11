@@ -47,20 +47,30 @@
 ; Problem2: 
 ; Solved by myself: Y
 ; Time taken: about 1hour
-; [contracet] free-ids: PWAE -> list-of-sym
-; [purpose] find free-ids
 
+; symbol<?
+; [contract] symbol<?: symbol symbol -> t/f
+; [purpose] compare string VS string
 (define (symbol<? a b) (string<? (symbol->string a) (symbol->string b)))
 
+; make-list
+; [contract] make-list: symbol list-of-sym -> list-of-sym
+; [purpose] attach the appropriate id to the list, sort it in order, and remove the duplicate id.
 (define (make-list id lst)
   (remove-duplicates (sort (append id lst) symbol<?)))
 
+; check-free-ids
+; [contract] check-free-ids: symbol list-of-sym -> list-of-sym
+; [purpose] check if id(free) is included in the list.
 (define (check-free-ids name lst-idtf)
   [cond
     [(empty? lst-idtf) (list name)]
     [(equal? (first lst-idtf) name) '()]
     [else (check-free-ids name (rest lst-idtf))]])
 
+; sub-free
+; [contract] sub-free: PWAE list-of-sym -> list-of-sym
+; [purpose] check if it is free identifier while performing the recusion.
 (define (sub-free pwae lst-idtf)
   (type-case PWAE pwae
     [num (n) '()]
@@ -70,6 +80,9 @@
     [postfix (l r o) (append (sub-free l lst-idtf) (sub-free r lst-idtf))]
     [substitute (i v e k) (append (sub-free v lst-idtf) (sub-free e (append (list i) lst-idtf)))]))
 
+; free-ids
+; [contract] free-ids: PWAE -> list-of-sym
+; [purpose] find free identifiers
 (define (free-ids pwae)
   (type-case PWAE pwae
     [num (n) '()]
@@ -93,8 +106,8 @@
 ; Problem3: 
 ; Solved by myself: Y
 ; Time taken: about 30mins
-; [contracet] binding-ids PWAE -> list-of-sym
-; [purpose] find binding-ids
+; [contract] binding-ids PWAE -> list-of-sym
+; [purpose] find binding identifiers
 
 (define (binding-ids pwae)
   (type-case PWAE pwae
@@ -114,15 +127,19 @@
 ; Problem4: 
 ; Solved by myself: Y
 ; Time taken: about 4hours
-; [contracet] bound-ids PWAE -> list-of-sym
-; [purpose] find bound-ids
 
+; check-ids
+; [contract] check-ids symbol list-of-sym -> list-of-sym
+; [purpose] check if id(bound) is included in the list.
 (define (check-ids name lst-idtf)
   [cond
     [(empty? lst-idtf) '()]
     [(equal? (first lst-idtf) name) (list name)]
     [else (check-ids name (rest lst-idtf))]])
 
+; sub-bound
+; [contract] sub-bound PWAE list-of-sym -> list-of-sym
+; [purpose] check if it is bound identifier while performing the recusion.
 (define (sub-bound pwae lst-idtf)
   (type-case PWAE pwae
     [num (n) '()]
@@ -132,6 +149,9 @@
     [postfix (l r o) (append (sub-bound l lst-idtf) (sub-bound r lst-idtf))]
     [substitute (i v e k) (append (sub-bound v lst-idtf) (sub-bound e (append (list i) lst-idtf)))]))
 
+; bound-ids
+; [contract] bound-ids PWAE -> list-of-sym
+; [purpose] find bound identifiers
 (define (bound-ids pwae)
   (type-case PWAE pwae
     [num (n) '()]
