@@ -3,6 +3,13 @@
 ;{+{-{+ 5 5}3}{-{+ 5 5}3}}
 ;{with{x {+ 5 5}}{with{y {- x 3}}{+ y y}}}
 
+;Define WAE type
+;<WAE> ::= <num>                            
+;	| {+ <WAE><WAE>}
+;	| {- <WAE><WAE>}
+;	| {with {<id><WAE>} <WAE>}
+;	| <id>
+
 (define-type WAE
   [num (n number?)]
   [add (lhs WAE?)(rhs WAE?)]
