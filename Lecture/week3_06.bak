@@ -26,3 +26,5 @@
 (test(parse '{with{x 5}{+ x x}})(with 'x(num 5)(add(id 'x)(id 'x))))
 
 (parse '{with {x {+ 5 5}}{+ x x}})
+
+;(parse '{with {x 5}{+ x {with {y 3} x}}})

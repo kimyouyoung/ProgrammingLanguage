@@ -11,12 +11,14 @@
 ; ae1's type is 'add'
 ; add-rhs -> '-' = in java '.'
 (define ae1 (add (sub (num 3)(num 4)) (num 7))) ; ==> abstract syntax
-(sub? ae1)
-(add-lhs ae1)
-(add-rhs ae1)
+(sub? ae1)    ; #f
+(add-lhs ae1) ; (sub (num 3)(num 4))
+(add-rhs ae1) ; (num 7)
+(sub-rhs (add-lhs ae1))  ;(num 4)
 
+; sexp: sub-expression which is just source code
 ; parse: sexp -> AE
-; to convert s-expressions into AEs in abstract syntax
+; to convert sub-expressions into AEs in abstract syntax
 (define (parse sexp)
   (cond
     [(number? sexp)(num sexp)]
@@ -34,12 +36,16 @@
 ; tests
 (test(parse '3)(num 3))
 (test(parse '{+ 3 4})(add (num 3)(num 4)))
+(test(parse '{- 4 3})(sub (num 4)(num 3)))
+(test(parse '{+ {+ 4 3}{- 4 3}})(add(add (num 4)(num 3))(sub (num 4)(num 3))))
 (test(parse '{+ {- 5 4} 5})(add(sub (num 5)(num 4))(num 5)))
 (test/exn(parse '{-5 1 2})"parse: bad syntax: (-5 1 2)")
        
 ;(parse '{+ 3 4})
 ;(parse '{+ 3 4 5})
 
+; [contract] interp: AE -> number
+; [purpose] consumes an AE and compute the corresponding number.
 (define (interp ae)
   (type-case AE ae
     ; n is recognized as actual number for computers.
