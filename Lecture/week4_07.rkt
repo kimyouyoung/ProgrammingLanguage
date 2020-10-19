@@ -24,10 +24,13 @@
 (test(parse '{+{- 3 4} 7})(add(sub (num 3)(num 4))(num 7)))
 (test(parse '{with{x 5}{+ 8 2}})(with 'x(num 5)(add(num 8)(num 2))))
 (test(parse '{with{x 5}{+ x x}})(with 'x(num 5)(add(id 'x)(id 'x))))
+(test(parse '{with{x {+ 3 5}}{+ 9 x}})(with 'x(add (num 3)(num 5))(add(num 9)(id 'x))))
 
 (parse '{with {x {+ 5 5}}{+ x x}})
 
 ;[contract] subst: WAE symbol number -> WAE
+;[purpose] to substitute second argument with third argument in first argument, as per the rules of substitution
+;          resulting expression contains no free instances of the second argument
 (define (subst wae idtf val)
   (type-case WAE wae
     [num (n) wae]
@@ -38,6 +41,8 @@
     [id (s) (if(symbol=? s idtf)(num val) wae)])) 
 
 (test(subst(with 'y (num 17)(id 'x)) 'x 10)(with 'y (num 17)(num 10)))
+(test(subst(add (num 1)(id 'x)) 'x 10)(add (num 1)(num 10)))
+(test(subst(with 'x (id 'y)(id 'x)) 'x 10)(with 'x (id 'y)(id 'x)))
 
 ;interp: WAE -> number
 (define (interp wae)

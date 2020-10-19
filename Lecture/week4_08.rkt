@@ -2,20 +2,20 @@
 
 ; F1WAE
 ; concrete syntax
-; <FunDef> ::= {deffun {<id><id>}<F1WAE>}
+; <FunDef> ::= {deffun {<id><id>}<F1WAE>}    ; function definition
 ; <F1WAE> ::= <num>
 ;            | {+ <F1WAE><F1WAE>}
 ;            | {- <F1WAE><F1WAE>}
 ;            | {with {<id><F1WAE>}<F1WAE>}
 ;            | <id>
-;            | {<id> <F1WAE>}
+;            | {<id> <F1WAE>}   ; function call
 
 ; <F1WAE> ::= <num>
 ;            | {+ <F1WAE><F1WAE>}
 ;            | {- <F1WAE><F1WAE>}
 ;            | {with {<id><F1WAE>}<F1WAE>}
-;            | {<F1WAE><F1WAE>}
-;            | {deffun {<id><id>}<F1WAE>}
+;            | {<F1WAE><F1WAE>}              ; function call?
+;            | {deffun {<id><id>}<F1WAE>}    ; function definition
 
 (define-type FunDef
   [fundef (fun-name symbol?)
@@ -36,13 +36,6 @@
 (fundef 'twice 'x (add (id 'x)(id 'x)))
 (app 'twice (num 10))
 
-
-; F1WAE parser
-; parse-fd: sexp -> FunDef
-(define (parse-fd sexp)
-  (match sexp
-    [(list 'deffun (list f x) b)(fundef f x (parse b))]))
-
 ; parse: sexp -> F1WAE
 (define (parse sexp)
   (match sexp
@@ -54,24 +47,14 @@
     [(list f a) (app f (parse a))]
     [else (error 'parse "bad syntax:~a"sexp)]))
 
-; F1WAE interpreter
-; interp: F1WAE list-of-FuncDef -> number
-(define (interp f1wae fundefs)
-  (type-case F1WAE f1wae
-    [num (n) n]
-    [add (l r) (+ (interp l fundefs)(interp r fundefs))]
-    [sub (l r) (- (interp l fundefs)(interp r fundefs))]
-    [with (x i b) (interp (subst b x (interp i fundefs)) fundefs)]
-    [id (s) (error 'interp "free identifier")]
-    [app (f a)
-              (local
-                [(define a_fundef(lookup-fundef f fundefs))]
-                (interp (subst (fundef-body a_fundef)
-                               (fundef-arg-name a_fundef)
-                               (interp a fundefs))
-                        fundefs))]))
+; F1WAE parser
+; function definition
+; parse-fd: sexp -> FunDef
+(define (parse-fd sexp)
+  (match sexp
+    [(list 'deffun (list f x) b)(fundef f x (parse b))]))
 
-; lookup-fundef: synbol list-of-FunDef -> FunDef
+; lookup-fundef: symbol list-of-FunDef -> FunDef
 (define (lookup-fundef name fundefs)
   (cond
     [(empty? fundefs)
@@ -91,3 +74,27 @@
                                  (subst e idtf val)))]
     [id (s) (if (symbol=? s idtf)(num val)f1wae)]
     [app (f a) (app f (subst a idtf val))]))
+
+; F1WAE interpreter
+; interp: F1WAE list-of-FuncDef -> number
+(define (interp f1wae fundefs)
+  (type-case F1WAE f1wae
+    [num (n) n]
+    [add (l r) (+ (interp l fundefs)(interp r fundefs))]
+    [sub (l r) (- (interp l fundefs)(interp r fundefs))]
+    [with (x i b) (interp (subst b x (interp i fundefs)) fundefs)]
+    [id (s) (error 'interp "free identifier")]
+    [app (f a)
+              (local
+                [(define a_fundef(lookup-fundef f fundefs))]
+                (interp (subst (fundef-body a_fundef)
+                               (fundef-arg-name a_fundef)
+                               (interp a fundefs))
+                        fundefs))]))
+
+; app -> function call, fundef -> function definition
+(test(interp(app 'f (num 1))(list(fundef 'f 'x (add(id 'x)(num 3))))) 4)
+(test(interp(app 'f (num 10))
+                 (list(fundef 'f 'x(sub (num 20)
+                                        (app 'twice (id 'x))))
+                      (fundef 'twice 'y (add (id 'y)(id 'y))))) 0)

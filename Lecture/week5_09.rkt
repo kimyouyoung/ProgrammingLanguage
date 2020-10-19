@@ -19,14 +19,16 @@
   [with (name symbol?)(named-expr WAE?)(body WAE?)]
   [id (name symbol?)])
 
-; interp: WAE DefrdSub -> number
-(define (interp wae ds)
-  (type-case WAE wae
-    [num (n) n]
-    [add (l r) (+ (interp l)(interp r))]
-    [sub (l r) (- (interp l)(interp r))]
-    [with (i v e) (interp e (aSub i (interp v ds) ds))]
-    [id (s) (lookup s ds)]))
+;[contract] parse: sexp -> WAE
+;[purpose] to convert s-expression into WAE
+(define (parse sexp)
+  (match sexp
+    [(? number?) (num sexp)]
+    [(list '+ l r) (add (parse l)(parse r))]
+    [(list '- l r) (sub (parse l)(parse r))]
+    [(list 'with (list i v) e) (with i (parse v)(parse e))]
+    [(? symbol?) (id sexp)]
+    [else (error 'parse "bad syntax:~a"sexp)]))
 
 ; lookup: symbol DefrdSub -> number
 (define (lookup name ds)
@@ -39,10 +41,21 @@
 (test(lookup 'x(aSub 'x 1 (mtSub))) 1)
 (test(lookup 'y(aSub 'x 1 (aSub 'y 4 (mtSub)))) 4)
 
+; interp: WAE DefrdSub -> number
+; ds: deferring substitution
+(define (interp wae ds)
+  (type-case WAE wae
+    [num (n) n]
+    [add (l r) (+ (interp l)(interp r))]
+    [sub (l r) (- (interp l)(interp r))]
+    [with (i v e) (interp e (aSub i (interp v ds) ds))]
+    [id (s) (lookup s ds)]))
+
 (define-type FunDef
   [fundef (fun-name symbol?)
           (arg-name symbol?)
           (body F1WAE?)])
+
 ; abstract syntax
 (define-type F1WAE
   [f1-num (n number?)]
@@ -81,20 +94,20 @@
                  ))]))
 
 ; parse: sexp -> F1WAE
-(define (parse sexp)
+(define (f1-parse sexp)
   (match sexp
     [(? number?) (f1-num sexp)]
-    [(list '+ l r) (f1-add (parse l)(parse r))]
-    [(list '- l r) (f1-sub (parse l)(parse r))]
-    [(list 'with (list i v) e) (f1-with i (parse v)(parse e))]
+    [(list '+ l r) (f1-add (f1-parse l)(f1-parse r))]
+    [(list '- l r) (f1-sub (f1-parse l)(f1-parse r))]
+    [(list 'with (list i v) e) (f1-with i (f1-parse v)(f1-parse e))]
     [(? symbol?) (f1-id sexp)]
-    [(list f a) (f1-app f (parse a))]
-    [else (error 'parse "bad syntax:~a"sexp)]))
+    [(list f a) (f1-app f (f1-parse a))]
+    [else (error 'f1-parse "bad syntax:~a"sexp)]))
 
 ; F1WAE parser
 ; parse-fd: sexp -> FunDef
 (define (parse-fd sexp)
   (match sexp
-    [(list 'deffun (list f x) b)(fundef f x (parse b))]))
+    [(list 'deffun (list f x) b)(fundef f x (f1-parse b))]))
 
-(test(f1-interp(parse '{f 1})(list(parse-fd '{deffun (f x){+ x 3}}))(mtSub)) 4)
+(test(f1-interp(f1-parse '{f 1})(list(parse-fd '{deffun (f x){+ x 3}}))(mtSub)) 4)
