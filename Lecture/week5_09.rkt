@@ -83,13 +83,13 @@
     [f1-sub (l r) (- (f1-interp l fundefs ds)(f1-interp r fundefs ds))]
     [f1-with (i v e) (f1-interp e fundefs(aSub i (f1-interp v fundefs ds) ds))]
     [f1-id (s) (lookup s ds)]
-    [f1-app (f a)
+    [f1-app (ftn arg)
               (local
-                [(define a-fundef(lookup-fundef f fundefs))]
+                [(define a-fundef(lookup-fundef ftn fundefs))]
                 (f1-interp (fundef-body a-fundef)
                          fundefs
                         (aSub (fundef-arg-name a-fundef)
-                              (f1-interp a fundefs ds)
+                              (f1-interp arg fundefs ds)
                               (mtSub))
                  ))]))
 
@@ -111,3 +111,4 @@
     [(list 'deffun (list f x) b)(fundef f x (f1-parse b))]))
 
 (test(f1-interp(f1-parse '{f 1})(list(parse-fd '{deffun (f x){+ x 3}}))(mtSub)) 4)
+                                                                                                                                                                                                

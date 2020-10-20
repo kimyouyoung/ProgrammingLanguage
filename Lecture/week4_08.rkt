@@ -21,7 +21,7 @@
   [fundef (fun-name symbol?)
           (arg-name symbol?)
           (body F1WAE?)])
-; abstract syntax
+; abstract syntax (First order function)
 (define-type F1WAE
   [num (n number?)]
   [add (lhs F1WAE?)(rhs F1WAE?)]
