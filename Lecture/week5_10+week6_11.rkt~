@@ -107,9 +107,3 @@
 (interp (parse '{with {z {fun {x} {+ x y}}} {with {y 10} z}}))  ;; work as dynamic scope but it must be an error, free identifier as we adopt static scope.
 (interp (parse '{with {y 3} {with {z {fun {x} {+ x y}}} {with {y 10} {z 5}}}}))
 (interp (parse '{with {z {fun {x} {+ x y}}} {with {y 10} {z 5}}}))
-
-(parse '{with {x 3} {fun {x}{+ x y}}})
-(parse '{with {x 3} {fun {y}{+ x y}}})
-(interp (parse '{with {x 3} {fun {y}{+ x y}}}))
-(interp (parse '{fun {x}{+ x y}}))
-(interp (with 'x (num 3) (fun 'x (add (id 'x) (id 'y)))))
