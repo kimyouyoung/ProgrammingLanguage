@@ -4,6 +4,7 @@
 ;<FAE> ::= <num>                            
 ;	| {+ <FAE><FAE>}
 ;	| {- <FAE><FAE>}
+;	| {with{<id><FAE>} <FAE>}
 ;	| <id>
 ;    	| {fun {<id><FAE>}
 ;    	| {<FAE><FAE>}

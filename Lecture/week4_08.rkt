@@ -10,13 +10,6 @@
 ;            | <id>
 ;            | {<id> <F1WAE>}   ; function call
 
-; <F1WAE> ::= <num>
-;            | {+ <F1WAE><F1WAE>}
-;            | {- <F1WAE><F1WAE>}
-;            | {with {<id><F1WAE>}<F1WAE>}
-;            | {<F1WAE><F1WAE>}              ; function call?
-;            | {deffun {<id><id>}<F1WAE>}    ; function definition
-
 (define-type FunDef
   [fundef (fun-name symbol?)
           (arg-name symbol?)
@@ -47,22 +40,19 @@
     [(list f a) (app f (parse a))]
     [else (error 'parse "bad syntax:~a"sexp)]))
 
+(test(parse '(x 5)) (app 'x (num 5)))
+
 ; F1WAE parser
 ; function definition
-; parse-fd: sexp -> FunDef
+; parse-fd: sexp -> FunDef(return function)
 (define (parse-fd sexp)
   (match sexp
     [(list 'deffun (list f x) b)(fundef f x (parse b))]))
 
-; lookup-fundef: symbol list-of-FunDef -> FunDef
-(define (lookup-fundef name fundefs)
-  (cond
-    [(empty? fundefs)
-     (error 'lookup-fundef "unknown function")]
-    [else
-     (if (symbol=? name(fundef-fun-name (first fundefs)))
-            (first fundefs)
-            (lookup-fundef name(rest fundefs)))]))
+;(test(parse-fd '{deffun {triangle x} {+ x x}})(fundef 'triangle 'x (add (id 'x) (id 'x))))
+(test(parse-fd '{deffun {triangle x} {+ x x}})(fundef 'triangle 'x (add (id 'x) (id 'x))))
+(test(parse-fd '{deffun {t y} {+ y y}})(fundef 't 'y (add (id 'y) (id 'y))))
+(test(parse '{with{x {+ 3 5}}{+ 9 x}})(with 'x(add (num 3)(num 5))(add(num 9)(id 'x))))
 
 ; [contract] subst: F1WAE symbol number -> F1WAE
 (define (subst f1wae idtf val)
@@ -75,6 +65,16 @@
     [id (s) (if (symbol=? s idtf)(num val)f1wae)]
     [app (f a) (app f (subst a idtf val))]))
 
+; lookup-fundef: symbol list-of-FunDef -> FunDef
+(define (lookup-fundef name fundefs)
+  (cond
+    [(empty? fundefs)
+     (error 'lookup-fundef "unknown function")]
+    [else
+     (if (symbol=? name(fundef-fun-name (first fundefs)))
+            (first fundefs)
+            (lookup-fundef name(rest fundefs)))]))
+
 ; F1WAE interpreter
 ; interp: F1WAE list-of-FuncDef -> number
 (define (interp f1wae fundefs)
@@ -82,7 +82,7 @@
     [num (n) n]
     [add (l r) (+ (interp l fundefs)(interp r fundefs))]
     [sub (l r) (- (interp l fundefs)(interp r fundefs))]
-    [with (x i b) (interp (subst b x (interp i fundefs)) fundefs)]
+    [with (i v b) (interp (subst b i (interp v fundefs)) fundefs)]
     [id (s) (error 'interp "free identifier")]
     [app (f a)
               (local

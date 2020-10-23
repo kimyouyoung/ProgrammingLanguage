@@ -45,7 +45,7 @@
                   (interp (subst (fun-body ftn)
                                  (fun-param ftn)
                                  (interp a))))]))
-(interp (num 9)) ; 9
+;(interp (num 9)) ; 9 ==> F1WAE
 ; in FWAE number or function definition => FWAE
 (interp (num 9)) ; ==> (num 9)
 
@@ -62,13 +62,19 @@
 ;(define (num- x y)
 ;  (num (- (num-n x)(num-n y))))
 
-; num-op: (number number -> number) -> (FWAE FWAE -> FWAE)
+; num-op: (number number -> number) -> (FWAE FWAE -> FWAE)  (num 3)(num5)
 (define (num-op op)
   (lambda (x y)
     (num(op (num-n x)(num-n y)))))
 
+((num-op +) (num 3)(num 5))
+((num-op -) (num 3)(num 5))
+
 (define num+ (num-op +))
 (define num- (num-op -))
+
+(num+ (num 3)(num 11))
+(num- (num 3)(num 11))
 
 ; subst: FWAE symbol FWAE -> FWAE
 (define (subst exp idtf val)
@@ -85,3 +91,25 @@
     [fun (id body) (if (equal? idtf id)
                        exp
                        (fun id (subst body idtf val)))]))
+
+; tests
+(test (interp (with 'x (num 5) (add (id 'x)(id 'x)))) (num 10))
+(test (interp (with 'x (num 5) (add (num 1)(with 'y (id 'x)(id 'y))))) (num 6))
+(test (interp (parse '{fun {a} {+ a a}})) (fun 'a (add (id 'a)(id 'a))))
+;{with {x 1} {fn {with {y 10} {+ y x}}}}
+; F1WAE test case
+;(test (interp (parse '{with {x 1} {fn {with {y 10} {+ y x}}}}) (list (parse-fd '{deffun {fn a} {+ a a}}))) 22)
+; {fun {a} {+ a a}} = value part
+(test (interp (parse '{with {fn {fun {a} {+ a a}}} {with {x 1} {fn {with {y 10} {+ y x}}}}})) (num 22))
+
+;dynamic scope issue
+(interp (parse '{with {y 3} {with {z {fun {x} {+ x y}}} {with {y 10} z}}}))
+(interp (parse '{with {z {fun {x} {+ x y}}} {with {y 10} z}}))  ;; work as dynamic scope but it must be an error, free identifier as we adopt static scope.
+(interp (parse '{with {y 3} {with {z {fun {x} {+ x y}}} {with {y 10} {z 5}}}}))
+(interp (parse '{with {z {fun {x} {+ x y}}} {with {y 10} {z 5}}}))
+
+(parse '{with {x 3} {fun {x}{+ x y}}})
+(parse '{with {x 3} {fun {y}{+ x y}}})
+(interp (parse '{with {x 3} {fun {y}{+ x y}}}))
+(interp (parse '{fun {x}{+ x y}}))
+(interp (with 'x (num 3) (fun 'x (add (id 'x) (id 'y)))))

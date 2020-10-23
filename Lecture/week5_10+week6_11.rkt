@@ -1,10 +1,5 @@
 #lang plai
 
-(define-type FunDef
-  [fundef (fun-name symbol?)
-          (arg-name symbol?)
-          (body FWAE?)])
-
 ; abstract syntax
 (define-type FWAE
   [num (n number?)]
@@ -31,6 +26,8 @@
     [(list 'fun (list p) b) (fun p (parse b))]  ; e.g., {fun {x}{+ x 1}}
     [(list f a) (app (parse f) (parse a))]
     [else (error 'parse "bad syntax:~a"sexp)]))
+
+(parse '{with{f {fun {x}{+ x x}}}{- 20{f 10}}})
 
 ; interp: FWAE -> FWAE
 (define (interp fwae)
