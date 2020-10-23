@@ -38,6 +38,7 @@
 
 (parse  '{with {x 3} {+ x x}})
 (parse '{with {x 3} {with {f {fun {y} {+ x y}}} {with {x 5} {f 4}}}})
+(parse '{with {z {fun {x}{+ x y}}}{with {y 10} z}})
 
 (define-type FAE-Value
   [numV (n number?)]
@@ -46,6 +47,14 @@
 (define-type DefrdSub
   [mtSub]
   [aSub (name symbol?) (value FAE-Value?) (ds DefrdSub?)])
+
+; lookup: symbol DefrdSub -> number
+(define (lookup name ds)
+  (type-case DefrdSub ds
+    [mtSub () (error 'lookup "free identifier")]
+    [aSub (i v saved) (if(symbol=? i name)
+                              v
+                              (lookup name saved))]))
 
 ; interp: FAE DefrdSub -> FAE-value
 (define (interp fae ds)
