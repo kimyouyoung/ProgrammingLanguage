@@ -70,3 +70,4 @@
                          (aSub(closureV-param f-val)
                               a-val
                               (closureV-ds f-val))))]))
+(interp '{with {y 3}{{fun {x}{+ x y}}{+ 23 1}}})

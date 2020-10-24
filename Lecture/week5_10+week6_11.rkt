@@ -29,6 +29,16 @@
 
 (parse '{with{f {fun {x}{+ x x}}}{- 20{f 10}}})
 
+(define (subst f1wae idtf val)
+  (type-case F1WAE f1wae
+    [num (n) f1wae]
+    [add (l r) (add (subst l idtf val)(subst r idtf val))]
+    [sub (l r) (sub (subst l idtf val)(subst r idtf val))]
+    [with (i v e) (with i (subst v idtf val)(if (symbol=? i idtf) e
+                                 (subst e idtf val)))]
+    [id (s) (if (symbol=? s idtf)(num val)f1wae)]
+    [app (f a) (app f (subst a idtf val))]))
+
 ; interp: FWAE -> FWAE
 (define (interp fwae)
   (type-case FWAE fwae
@@ -45,6 +55,7 @@
 ;(interp (num 9)) ; 9 ==> F1WAE
 ; in FWAE number or function definition => FWAE
 (interp (num 9)) ; ==> (num 9)
+{interp(parse '{with {y 3}{{fun {x} {+ x y}} {+ 23 1}}})}
 
 ; interp
 ; (add (num 6)(num 5)) == f1wae interp -> 11
