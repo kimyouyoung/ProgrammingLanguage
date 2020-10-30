@@ -1,0 +1,10 @@
+#lang plai
+;<RCFAE> ::= <num>
+;            |{+ <RCFAE><RCFAE>}
+;            |{- <RCFAE><RCFAE>}
+;            |{* <RCFAE><RCFAE>}
+;            |<id>
+;            |{fun {<id>}<RCFAE>}
+;            |{<RCFAE><RCFAE>}
+;            |{if0 <RCFAE> <RCFAE> <RCFAE>}
+;            |{rec {<id> <RCFAE>} <RCFAE>}
