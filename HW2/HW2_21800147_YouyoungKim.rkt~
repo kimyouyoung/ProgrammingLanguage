@@ -171,12 +171,3 @@
 (test (bound-ids (substitute 'x (id 'a) (substitute 'y (id 'b) (substitute 'z (id 'c) (postfix (id 'd) (postfix (id 'x) (postfix (id 'y) (id 'z) (op 'add)) (op 'sub)) (op 'sub)) (keyword 'with)) (keyword 'with)) (keyword 'with))) '(x y z))
 (test (bound-ids (postfix (substitute 'x (num 10) (substitute 'x (num 3) (postfix (id 'y) (substitute 'y (num 7) (postfix (id 'x) (postfix (id 'c) (id 'b) (op 'sub)) (op 'sub)) (keyword 'with)) (op 'sub)) (keyword 'with)) (keyword 'with)) (substitute 'a (id 'd) (id 'a) (keyword 'with)) (op 'add))) '(a x))
 (test (bound-ids (postfix (substitute 'x (num 10) (substitute 'x (num 3) (postfix (id 'y) (substitute 'y (num 7) (postfix (id 'x) (postfix (id 'c) (id 'b) (op 'sub)) (op 'add)) (keyword 'with)) (op 'sub)) (keyword 'with)) (keyword 'with)) (substitute 'a (id 'd) (id 'z) (keyword 'with)) (op 'add))) '(x))
-
-
-(test (free-ids (id 'x)) '(x))
-(test (free-ids (postfix (id 'x) (id 'a) (op 'add))) '(a x))
-(test (free-ids (postfix (id 'x) (id 'a) (op 'sub))) '(a x))
-
-(test (binding-ids (postfix (substitute 'y (num 3) (id 'y) (keyword 'with)) (substitute 'x (num 3) (id 'x) (keyword 'with)) (op 'add))) '(x y))
-(test (binding-ids (postfix (substitute 'y (num 3) (id 'y) (keyword 'with)) (substitute 'y (num 3) (id 'y) (keyword 'with)) (op 'add))) '(y))
-(test (binding-ids (substitute 'y (num 3) (postfix (num 3) (substitute 'x (id 'x) (id 'y) (keyword 'with)) (op 'add)) (keyword 'with))) '(x y))

@@ -35,7 +35,7 @@
     [(list 'fun (list p) b) (fun p (parse b))]  
     [(list f a) (app (parse f) (parse a))]
     [else (error 'parse "bad syntax:~a"sexp)]))
-
+(parse '{f {fun {y} {+ x y}}})
 (parse  '{with {x 3} {+ x x}})
 (parse '{with {x 3} {with {f {fun {y} {+ x y}}} {with {x 5} {f 4}}}})
 (parse '{with {z {fun {x}{+ x y}}}{with {y 10} z}})
@@ -70,4 +70,4 @@
                          (aSub(closureV-param f-val)
                               a-val
                               (closureV-ds f-val))))]))
-(interp '{with {y 3}{{fun {x}{+ x y}}{+ 23 1}}})
+;(interp '{with {y 3}{{fun {x}{+ x y}}{+ 23 1}}})

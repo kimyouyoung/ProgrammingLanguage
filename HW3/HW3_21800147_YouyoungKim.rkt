@@ -20,7 +20,7 @@
 ; Solved by myself: Y
 ; Time taken: about 20mins
 ; [contract] parse: string -> SDFAE
-; [purpose] to convert string to SDFAE
+; [purpose] to convert string(sub-expression) to SDFAE
 
 (define (parse sexp)
   (match sexp
@@ -35,15 +35,11 @@
     [else (error 'parse "bad syntax:~a"sexp)]))
 
 
-;(test (parse '{with {x 3} {with {f {d fun {y} {+ x y}}} {with {x 5} {f 4}}}}) (app (fun 's 'x (app (fun 's 'f (app (fun 's 'x (app (id 'f) (num 4))) (num 5))) (fun 'd 'y (add (id 'x) (id 'y))))) (num 3)))
-;(test (parse '{with {x 3} {with {f {s fun {y} {+ x y}}} {with {x 5} {f 4}}}}) (app (fun 's 'x (app (fun 's 'f (app (fun 's 'x (app (id 'f) (num 4))) (num 5))) (fun 's 'y (add (id 'x) (id 'y))))) (num 3)))
-
-
 ; Problem2: 
 ; Solved by myself: Y
 ; Time taken: about 40mins
 ; [contract] interp : SDFAE ds → result
-; [purpose] interpreter SDFAE 
+; [purpose] interpret SDFAE to produce results
 
 (define (num-op op)
   (lambda (x y)
@@ -87,6 +83,3 @@
                                        (aSub(closureV-param f-val)
                                             a-val
                                             (closureV-ds f-val)))))]))
-
-;(interp (parse '{with {x 3} {with {f {d fun {y} {+ x y}}} {with {x 5} {f 4}}}}) (mtSub))
-;(interp (parse '{with {x 3} {with {f {s fun {y} {+ x y}}} {with {x 5} {f 4}}}}) (mtSub))
