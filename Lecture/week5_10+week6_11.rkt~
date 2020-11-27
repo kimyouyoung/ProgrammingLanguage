@@ -1,10 +1,5 @@
 #lang plai
 
-(define-type FunDef
-  [fundef (fun-name symbol?)
-          (arg-name symbol?)
-          (body FWAE?)])
-
 ; abstract syntax
 (define-type FWAE
   [num (n number?)]
@@ -32,6 +27,18 @@
     [(list f a) (app (parse f) (parse a))]
     [else (error 'parse "bad syntax:~a"sexp)]))
 
+(parse '{with{f {fun {x}{+ x x}}}{- 20{f 10}}})
+
+(define (subst f1wae idtf val)
+  (type-case F1WAE f1wae
+    [num (n) f1wae]
+    [add (l r) (add (subst l idtf val)(subst r idtf val))]
+    [sub (l r) (sub (subst l idtf val)(subst r idtf val))]
+    [with (i v e) (with i (subst v idtf val)(if (symbol=? i idtf) e
+                                 (subst e idtf val)))]
+    [id (s) (if (symbol=? s idtf)(num val)f1wae)]
+    [app (f a) (app f (subst a idtf val))]))
+
 ; interp: FWAE -> FWAE
 (define (interp fwae)
   (type-case FWAE fwae
@@ -48,6 +55,7 @@
 ;(interp (num 9)) ; 9 ==> F1WAE
 ; in FWAE number or function definition => FWAE
 (interp (num 9)) ; ==> (num 9)
+{interp(parse '{with {y 3}{{fun {x} {+ x y}} {+ 23 1}}})}
 
 ; interp
 ; (add (num 6)(num 5)) == f1wae interp -> 11
@@ -107,3 +115,9 @@
 (interp (parse '{with {z {fun {x} {+ x y}}} {with {y 10} z}}))  ;; work as dynamic scope but it must be an error, free identifier as we adopt static scope.
 (interp (parse '{with {y 3} {with {z {fun {x} {+ x y}}} {with {y 10} {z 5}}}}))
 (interp (parse '{with {z {fun {x} {+ x y}}} {with {y 10} {z 5}}}))
+
+(parse '{with {x 3} {fun {x}{+ x y}}})
+(parse '{with {x 3} {fun {y}{+ x y}}})
+(interp (parse '{with {x 3} {fun {y}{+ x y}}}))
+(interp (parse '{fun {x}{+ x y}}))
+(interp (with 'x (num 3) (fun 'x (add (id 'x) (id 'y)))))

@@ -1,0 +1,44 @@
+#lang plai
+;<BFAE> ::= <num>
+;         | {+ <BFAE> <BFAE>}
+;         | {- <BFAE> <BFAE>}
+;         | <id>
+;         | {fun {<id} <BFAE>}
+;         | {<BFAE> <BFAE>}
+;         | {newbox <BFAE>}
+;         | {setbox <BFAE> <BFAE>}
+;         | {openbox <BFAE>}
+;         | {seqn <BFAE> <BFAE>}
+
+(define-type BFAE
+  [num (n number?)]
+  [add (lhs BFAE?)(rhs BFAE?)]
+  [sub (lhs BFAE?)(rhs BFAE?)]
+  [id (name symbol?)]
+  [fun (param symbol?)(body BFAE?)]
+  [newbox (v BFAE?)]
+  [setbox (bn BFAE?)(v BFAE?)]
+  [openbox (v BFAE?)]
+  [seqn (ex1 BFAE?)(ex2 BFAE?)]
+  [app (ftn BFAE?)(arg BFAE?)])
+
+(define-type DefrdSub
+  [mtSub]
+  [aSub (name symbol?)(address integer?)(ds DefrdSub?)])
+
+(define-type Store
+  [mtSto]
+  [aSto (address integer?)(value BFAE-Value?)(rest Store?)])
+
+(define-type BFAE-Value
+  [numV (n number?)]
+  [closureV (param symbol?)(body BFAE?)(ds DefrdSub?)]
+  [boxV (address integer?)])
+
+(define-type Value*Store
+  [v*s (value BFAE-Value?)(store Store?)])
+
+; interp: BFAE DefrdSub Store -> Value*Store
+(define (interp expr ds st)
+  [num (n) (v*s (numV n) st)]
+  [add (l r)
