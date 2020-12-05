@@ -102,13 +102,13 @@
 (define (run sexp ds)
      (interp (parse sexp) ds))
 
-(run '{fun {y} {+ x y}} (mtSub))
+;(run '{fun {y} {+ x y}} (mtSub))
 ;(run '{{fun {x} {+ 1 x}} 10} (mtSub))
 ;(run '{{fun {x} 0} {+ 1 {fun {y} 2}}} (mtSub))
 ;(run '{+ 1 {fun {y} 2}} (mtSub))
 ;(run '{{fun {x} x} {+ 1 {fun {y} 2}}} (mtSub))
 ;(run '{{fun {x} x} {+ 1 {{fun {y} 2} 1}}} (mtSub))
-(run '{{fun {x} x} {+ 1 1}} (mtSub))
+;(run '{{fun {x} x} {+ 1 1}} (mtSub))
 
 ;(run '{{fun {x} x} 1} (mtSub))
 ;(run '{{fun {x} {+ x x}} 1} (mtSub))
@@ -118,13 +118,9 @@
 ;(run '{{fun {x} {+ x x}} 1} (mtSub))
 ;(run '{{fun {x} {+ {+ x x} {+ x x}}} {- {+ 4 5} {+ 8 9}}} {mtSub})
 
-(run '{{fun {x} {x {+ 4 5}}} {fun {x} 0}} (mtSub))
+(run '{{fun {x} {x {+ 4 5}}} {fun {x} 0}} (mtSub)) 
 (run '{{fun {x} 0} {+ 1 {fun {y} 2}}} (mtSub)) 
 (run '{{fun {x} {+ x x}} {+ 1 {{fun {y} 2} 1}}} (mtSub))
 ;(run '{{fun {x} x} 1} (mtSub))
 ;(run '{{fun {x} x} {+ 1 {{fun {y} 2} 1}}} (mtSub))
-;(run '{{fun {x} x} {+ 1 {fun {y} 2}}} (mtSub)) ;; numV-n: contract violation ... [The interp is terminated with an error]
-
-(app (fun 'b (setbox (id 'b) (num 10))) (newbox (num 7)))
-f: (fun 'b (setbox (id 'b) (num 10)))
-a: (newbox (num 7))
+(run '{{fun {x} x} {+ 1 {fun {y} 2}}} (mtSub)) ;; numV-n: contract violation ... [The interp is terminated with an error]
