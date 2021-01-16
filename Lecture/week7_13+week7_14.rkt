@@ -125,6 +125,3 @@
 ;(run '{{fun {x} x} {+ 1 {{fun {y} 2} 1}}} (mtSub))
 ;(run '{{fun {x} x} {+ 1 {fun {y} 2}}} (mtSub)) ;; numV-n: contract violation ... [The interp is terminated with an error]
 
-(app (fun 'b (setbox (id 'b) (num 10))) (newbox (num 7)))
-f: (fun 'b (setbox (id 'b) (num 10)))
-a: (newbox (num 7))

@@ -1,9 +1,7 @@
 #lang plai
-; Problem1: 
-; Solved by myself: 
-; Time taken: about mins
-; [contract] parse: string -> SDFAE
-; [purpose] to convert string(sub-expression) to SDFAE
+; Problem2: 
+; Solved by myself: Y
+; Time taken: about 6 hours
 
 ;<BFAE> ::= <num>
 ;         | {+ <BFAE> <BFAE>}
@@ -51,8 +49,9 @@
   [boxV (address integer?)]
   [exprV (expr BFAE?) (ds DefrdSub?) (st Store?) (value (box/c (or/c false BFAE-Value?)))])
 
-; strict: Value*Store -> Value*Store
-; purpose: to interpret exprV expression to get a value in strictness points.
+; strict
+; [contract] Value*Store -> Value*Store
+; [purpose] to interpret exprV expression to get a value in strictness points.
 (define (strict vs)
     (type-case Value*Store vs
         [v*s (v s)
@@ -78,28 +77,47 @@
                             adr
                             (lookup name saved))]))
 
-; store-lookup address Store -> BFAE-Value
+; store-lookup
+; [contract] address Store -> BFAE-Value
+; [purpose] get the BFAE-value corresponding to the address.
 (define (store-lookup address sto)
   (type-case Store sto
     [mtSto() (error 'store-lookup "No value at address")]
     [aSto (location value rest-store)
                    (if (= location address)
-                       (v*s-value (strict (v*s value sto)))
+                       (v*s-value (strict (v*s value rest-store)))
                        (store-lookup address rest-store))]))
 
-; max-address: Store -> Integer
+; max-address
+; [contract] Store -> Integer
+; [purpose] add 1 to the max address value.
 (define (max-address st)
   (type-case Store st
     [mtSto () 0]
     [aSto (n v st)
           (max n (max-address st))]))
 
-; malloc: Store -> Integer
+; malloc
+; [contract] Store -> Integer
+; [purpose] allocate the address value.
 (define (malloc st)
   (+ 1 (max-address st)))
 
-; parse: sexp -> BFAE
-; purpose: to convert sexp to BFAE
+; interp-two
+; [contract] BFAE BFAE DefrdSub Store
+;             (Value Value Store -> Value*Store)
+;             -> Value*Store
+; [purpose] it can be calculated simply without repeating the same patterns.
+(define (interp-two expr1 expr2 ds st handle)
+  (type-case Value*Store (strict (interp expr1 ds st))
+    [v*s (val1 st2)
+         [type-case Value*Store (strict (interp expr2 ds st2))
+           [v*s (val2 st3)
+                (handle val1 val2 st3)]]]))
+
+; parse
+; [contract] sexp -> BFAE
+; [purpose] to convert sexp to BFAE
 (define (parse sexp)
    (match sexp
         [(? number?)                (num sexp)]
@@ -115,17 +133,9 @@
         [(list f a)                 (app (parse f) (parse a))]
         [else                       (error 'parse "bad syntax: ~a" sexp)]))
 
-; interp-two: BFAE BFAE DefrdSub Store
-;             (Value Value Store -> Value*Store)
-;             -> Value*Store
-(define (interp-two expr1 expr2 ds st handle)
-  (type-case Value*Store (strict (interp expr1 ds st))
-    [v*s (val1 st2)
-         [type-case Value*Store (strict (interp expr2 ds st2))
-           [v*s (val2 st3)
-                (handle val1 val2 st3)]]]))
-
-; interp: BFAE DefrdSub Store -> Value*Store
+; interp
+; [contract] BFAE DefrdSub Store -> Value*Store
+; [purpose] to get BFAE-Value and Store from BFAE
 (define (interp bfae ds st)
   (type-case BFAE bfae
     [num (n) (v*s (numV n) st)]
@@ -183,30 +193,20 @@
 (define (run sexp ds st)
   (interp (parse sexp) ds st))
 
-(test (run '{{fun {x} {+ 1 1}} {with {b {newbox 7}} {seqn {setbox b 10} {openbox b}}}} (mtSub) (mtSto)) (v*s (numV 2) (aSto 1 (exprV (app (fun 'b (seqn (setbox (id 'b) (num 10)) (openbox (id 'b)))) (newbox (num 7)))(mtSub) (mtSto) '#&#f) (mtSto))))
+(run '{with {b {newbox 7}} {seqn {setbox b 10} {openbox b}}} (mtSub) (mtSto))
+(run '{{fun {x} {+ 1 x}} 10} (mtSub) (mtSto))
 
-(test (run '{{fun {x} {+ 1 x}} 10} (mtSub) (mtSto)) (v*s (numV 11) (aSto 1 (exprV (num 10) (mtSub) (mtSto) (box (numV 10))) (mtSto))))
 
-(test (run '7 (mtSub) (mtSto)) (v*s (numV 7) (mtSto)))
+(test (v*s (numV 10) (aSto 1 (numV 10) (aSto 2 (boxV 1) (aSto 1 (exprV (num 7) (mtSub) (mtSto) '#&#f) (mtSto)))))
+(v*s  (numV 10) (aSto 1 (numV 10) (aSto 2 (boxV 1) (aSto 1 (exprV (num 7) (mtSub) (mtSto) '#&#f) (mtSto))))))
 
-(test (run '{+ 7 6} (mtSub) (mtSto)) (v*s (numV 13) (mtSto)))
-
-(test (run '{newbox 1} (mtSub) (mtSto)) (v*s (boxV 1) (aSto 1 (exprV (num 1) (mtSub) (mtSto) '#&#f) (mtSto))))
-
-(test (run '{with {b {newbox {+ 2 3}}} {openbox b}} (mtSub) (mtSto)) (v*s (numV 5) (aSto 2 (boxV 1) (aSto 1
-(exprV (add (num 2) (num 3)) (mtSub) (mtSto) (box (numV 5))) (mtSto)))))
-
-(test (run '{with {b {newbox 7}} {openbox b}} (mtSub) (mtSto)) (v*s (numV 7) (aSto 2 (boxV 1) (aSto 1 (exprV (num 7) (mtSub)
-(mtSto) (box (numV 7))) (mtSto)))))
-
-(test (run '{with {b {newbox 7}} {seqn {setbox b 10}
-{openbox b}}} (mtSub) (mtSto)) (v*s (numV 10) (aSto 1 (numV 10) (aSto 2 (boxV 1)
-(aSto 1 (exprV (num 7) (mtSub) (mtSto) '#&#f) (mtSto))))))
-
-(test (run '{with {b {newbox 7}} {seqn {openbox b} {openbox b}}} (mtSub) (mtSto)) (v*s (numV 7) (aSto 2 (boxV 1)
-(aSto 1 (exprV (num 7) (mtSub) (mtSto) (box (numV 7)))(mtSto)))))
-
-(test (run '{+ {with {b {newbox 10}} {seqn {setbox b 7} {openbox b}}} {with {b {newbox 10}} {seqn {setbox b 5} {openbox b}}}} (mtSub) 
-(mtSto)) (v*s (numV 12) (aSto 3 (numV 5) (aSto 4 (boxV 3) (aSto 3 (exprV (num 10) (mtSub) (aSto 1 (numV 7) (aSto 2 (boxV 1)
-(aSto 1 (exprV (num 10) (mtSub) (mtSto) '#&#f) (mtSto)))) '#&#f) (aSto 1 (numV 7) (aSto 2 (boxV 1) (aSto 1 (exprV (num
-10) (mtSub) (mtSto) '#&#f) (mtSto)))))))))
+(test (v*s (numV 2) (aSto 1 (exprV (app (fun 'b (seqn (setbox (id 'b) (num 10)) (openbox  (id 'b)))) (newbox  (num 7))) (mtSub) (mtSto) '#&#f) (mtSto)))
+(v*s (numV 2) (aSto 1
+  (exprV (app
+    (fun 'b (seqn (setbox (id 'b) (num 10)) (openbox (id 'b))))
+    (newbox (num 7)))
+   (mtSub)
+   (mtSto)
+   '#&#f)
+  (mtSto)))
+)

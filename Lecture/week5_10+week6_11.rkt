@@ -28,16 +28,34 @@
     [else (error 'parse "bad syntax:~a"sexp)]))
 
 (parse '{with{f {fun {x}{+ x x}}}{- 20{f 10}}})
+(parse '{fun {a} {+ a a}})
 
-(define (subst f1wae idtf val)
-  (type-case F1WAE f1wae
-    [num (n) f1wae]
+; num-op: (number number -> number) -> (FWAE FWAE -> FWAE)  (num 3)(num5)
+(define (num-op op)
+  (lambda (x y)
+    (num(op (num-n x)(num-n y)))))
+
+((num-op +) (num 3)(num 5))
+((num-op -) (num 3)(num 5))
+
+(define num+ (num-op +))
+(define num- (num-op -))
+
+; subst: FWAE symbol FWAE -> FWAE
+(define (subst exp idtf val)
+  (type-case FWAE exp
+    [num (n) exp]
     [add (l r) (add (subst l idtf val)(subst r idtf val))]
     [sub (l r) (sub (subst l idtf val)(subst r idtf val))]
     [with (i v e) (with i (subst v idtf val)(if (symbol=? i idtf) e
                                  (subst e idtf val)))]
-    [id (s) (if (symbol=? s idtf)(num val)f1wae)]
-    [app (f a) (app f (subst a idtf val))]))
+    [id (name) (cond[(equal? name idtf) val]
+                    [else exp])]
+    [app (f arg) (app (subst f idtf val)
+                      (subst arg idtf val))]
+    [fun (id body) (if (equal? idtf id)
+                       exp
+                       (fun id (subst body idtf val)))]))
 
 ; interp: FWAE -> FWAE
 (define (interp fwae)
@@ -70,35 +88,8 @@
 ;(define (num- x y)
 ;  (num (- (num-n x)(num-n y))))
 
-; num-op: (number number -> number) -> (FWAE FWAE -> FWAE)  (num 3)(num5)
-(define (num-op op)
-  (lambda (x y)
-    (num(op (num-n x)(num-n y)))))
-
-((num-op +) (num 3)(num 5))
-((num-op -) (num 3)(num 5))
-
-(define num+ (num-op +))
-(define num- (num-op -))
-
 (num+ (num 3)(num 11))
 (num- (num 3)(num 11))
-
-; subst: FWAE symbol FWAE -> FWAE
-(define (subst exp idtf val)
-  (type-case FWAE exp
-    [num (n) exp]
-    [add (l r) (add (subst l idtf val)(subst r idtf val))]
-    [sub (l r) (sub (subst l idtf val)(subst r idtf val))]
-    [with (i v e) (with i (subst v idtf val)(if (symbol=? i idtf) e
-                                 (subst e idtf val)))]
-    [id (name) (cond[(equal? name idtf) val]
-                    [else exp])]
-    [app (f arg) (app (subst f idtf val)
-                      (subst arg idtf val))]
-    [fun (id body) (if (equal? idtf id)
-                       exp
-                       (fun id (subst body idtf val)))]))
 
 ; tests
 (test (interp (with 'x (num 5) (add (id 'x)(id 'x)))) (num 10))
@@ -121,3 +112,6 @@
 (interp (parse '{with {x 3} {fun {y}{+ x y}}}))
 (interp (parse '{fun {x}{+ x y}}))
 (interp (with 'x (num 3) (fun 'x (add (id 'x) (id 'y)))))
+
+(parse '{with {y 3} {{fun {x} {+ x y}} {+ 23 1}}})
+

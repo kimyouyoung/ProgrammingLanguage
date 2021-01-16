@@ -21,6 +21,8 @@
     [(? symbol?) (id sexp)]
     [else (error 'parse "bad syntax:~a"sexp)]))
 
+(parse '{with{x {+ 1 2}}{+ x {- 2 x}}})
+
 (test(parse '{+{- 3 4} 7})(add(sub (num 3)(num 4))(num 7)))
 (test(parse '{with{x 5}{+ 8 2}})(with 'x(num 5)(add(num 8)(num 2))))
 (test(parse '{with{x 5}{+ x x}})(with 'x(num 5)(add(id 'x)(id 'x))))
@@ -55,3 +57,4 @@
 
 (test(interp(with 'x (num 5)(add (id 'x)(id 'x)))) 10)
 (test(interp(with 'y (num 3)(sub (num 10)(add (id 'y)(num 6))))) 1)
+(interp (parse '{with {x {+ 1 2}} {with {x {- 4 3}} {+ x x}}}))

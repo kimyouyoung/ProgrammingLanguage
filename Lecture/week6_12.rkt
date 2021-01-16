@@ -19,7 +19,7 @@
 
 (define (num-op op)
   (lambda (x y)
-    (num(op (num-n x)(num-n y)))))
+    (numV(op (numV-n x)(numV-n y)))))
 
 (define num+ (num-op +))
 (define num- (num-op -))
@@ -70,4 +70,9 @@
                          (aSub(closureV-param f-val)
                               a-val
                               (closureV-ds f-val))))]))
-;(interp '{with {y 3}{{fun {x}{+ x y}}{+ 23 1}}})
+
+;(interp (parse '{with {y 3}{{fun {x}{+ x y}}{+ 23 1}}}) (mtSub))
+(parse '{with {x 3} {with {f {fun {y} {+ x y}}} {with {x 5} {f 4}}}})
+(test (parse '{with {x 3} {with {f {fun {y} {+ x y}}} {with {x 5} {f 4}}}}) (app (fun 'x (app (fun 'f (app (fun 'x (app (id 'f) (num 4))) (num 5))) (fun 'y (add (id 'x) (id 'y))))) (num 3)))
+;(interp (parse '{with {f {fun {y} {+ x y}}} {with {x 5} {f 4}}}) (mtSub))
+(interp (parse '{with {x 3} {with {f {fun {y} {+ x y}}} {with {x 5} {f 4}}}}) (mtSub))

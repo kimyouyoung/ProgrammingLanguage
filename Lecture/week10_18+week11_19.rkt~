@@ -75,55 +75,56 @@
              (unbox max-address)))))
 
 ; interp: BFAE DefrdSub Store -> Value*Store
-(define (interp expr ds st)
-  [num (n) (v*s (numV n) st)]
-  [id (s) (v*s (store-lookup (lookup s ds) st) st)]
-  [add (l r) (type-case Value*Store (interp l ds st)
-               [v*s (l-value l-store)
-                    (type-case Value*Store (interp r ds l-store)
-                      [v*s (r-value r-store)
-                           (v*s (num+ l-value r-value)
-                                r-store)])])]
-  [sub (l r) (type-case Value*Store (interp l ds st)
-               [v*s (l-value l-store)
-                    (type-case Value*Store (interp r ds l-store)
-                      [v*s (r-value r-store)
-                           (v*s (num- l-value r-value)
-                                r-store)])])]
-  [fun (p b) (v*s (closureV p b ds) st)]
-  [newbox (val)
-          (type-case Value*Store (interp val ds st)
-            [v*s (v1 st1)
-                 (local [(define a (malloc st1))]
-                        (v*s (boxV a)
-                             (aSto a v1 st1)))])]
-  [setbox (bx-expr val-expr)
-          (type-case Value*Store (interp bx-expr ds st)
-            [v*s (bx-val st2)
-                 (type-case Value*Store (interp val-expr ds st2)
-                   [v*s (val st3)
-                        (v*s val
-                             (aSto (boxV-address bx-val)
-                                   val
-                                   st3))])])]
-  [openbox (bx-expr)
-           (type-case Value*Store (interp bx-expr ds st)
-             [v*s (bx-val st1)
-                  (v*s (store-lookup (boxV-address bx-val)
-                                     st1)
-                       st1)])]
-  [app (f a) (type-case Value*Store (interp f ds st)
-               [v*s (f-valuev f-store)
-                    (type-case Value*Store (interp a ds f-store)
-                      [v*s (a-value a-store)
-                           (local ([define new-address (malloc a-store)])
-                             (interp (closureV-body f-value)
-                                     (aSub (closureV-param f-value)
-                                           new-address
-                                           (closureV-ds f-value))
-                                     (aSto new-address
-                                           a-value
-                                           a-store)))])])])
+(define (interp bfae ds st)
+  (type-case BFAE bfae
+    [num (n) (v*s (numV n) st)]
+    [add (l r) (type-case Value*Store (interp l ds st)
+                 [v*s (l-value l-store)
+                      (type-case Value*Store (interp r ds l-store)
+                        [v*s (r-value r-store)
+                             (v*s (num+ l-value r-value)
+                                  r-store)])])]
+    [sub (l r) (type-case Value*Store (interp l ds st)
+                 [v*s (l-value l-store)
+                      (type-case Value*Store (interp r ds l-store)
+                        [v*s (r-value r-store)
+                             (v*s (num- l-value r-value)
+                                  r-store)])])]
+    [id (s) (v*s (store-lookup (lookup s ds) st) st)]
+    [fun (p b) (v*s (closureV p b ds) st)]
+    [app (f a) (type-case Value*Store (interp f ds st)
+                 [v*s (f-valuev f-store)
+                      (type-case Value*Store (interp a ds f-store)
+                        [v*s (a-value a-store)
+                             (local ([define new-address (malloc a-store)])
+                               (interp (closureV-body f-value)
+                                       (aSub (closureV-param f-value)
+                                             new-address
+                                             (closureV-ds f-value))
+                                       (aSto new-address
+                                             a-value
+                                             a-store)))])])]
+    [newbox (val)
+            (type-case Value*Store (interp val ds st)
+              [v*s (v1 st1)
+                   (local [(define a (malloc st1))]
+                     (v*s (boxV a)
+                          (aSto a v1 st1)))])]
+    [setbox (bx-expr val-expr)
+            (type-case Value*Store (interp bx-expr ds st)
+              [v*s (bx-val st2)
+                   (type-case Value*Store (interp val-expr ds st2)
+                     [v*s (val st3)
+                          (v*s val
+                               (aSto (boxV-address bx-val)
+                                     val
+                                     st3))])])]
+    [openbox (bx-expr)
+             (type-case Value*Store (interp bx-expr ds st)
+               [v*s (bx-val st1)
+                    (v*s (store-lookup (boxV-address bx-val)
+                                       st1)
+                         st1)])])
 
 ; interp-two: BFAE BFAE DefrdSub Store
 ;             (Value Value Store -> Value*Store)
@@ -134,4 +135,8 @@
          [type-case Value*Store (interp expr2 ds st2)
            [v*s (val2 st3)
                 (handle val1 val2 st3)]]]))
+    
+
+(define (run sexp ds st)
+  (interp (parse sexp) ds st))
   
